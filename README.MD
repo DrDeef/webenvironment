@@ -14,11 +14,6 @@ graph TD
     E --> L[MySQL]
 ```
 
-## Table of content:
-[[_TOC_]]
-
-
-
 ## Tech included:
 * traefik proxy
 * NGINX 
@@ -31,21 +26,17 @@ graph TD
 * Dynamic proxy is used with labels ( see docker-compose.yaml )
 * Traefik can deploy SSL certificates from lets encrypt from Production / Staging
 
-
-
 ## Requirements:
 * Windows 10 / 11  + Linux Subsystem for Windows V2
 * Docker Engine (Windows + MacOS)
 * docker-compose / docker installed in WSL
 * docker compose via Homebrew (macOS)
-* installed Ansible to prepare local environment (ansible/yaml playbooks)
 
 * Settings in Docker Desktop (Windows)
 https://docs.docker.com/desktop/windows/wsl/
 
 * MacOS Brew Install Script for Docker-Compose
 brew install docker docker-compose
-
 
 ### Usage
 
@@ -61,8 +52,6 @@ docker-compose up -d
 ```
 
 See the environment file for additional settings.
-
-
 
 ### Extended Configuration
 * Labels
