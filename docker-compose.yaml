@@ -1,0 +1,89 @@
+version: '3.5'
+
+services:
+# base images from gitlab registry
+  nginx:
+    image: 'anotherstranger/nginx-ubuntu:${NGINXTAG}'
+    container_name: "nginx_${CUSTOMERNAME}"
+    command: sh -c "sed -i 's/php-fpm/FPM_${PHPVERSION}_${CUSTOMERNAME}/' /etc/nginx/sites-enabled/default && nginx"
+# no open ports due traefik proxy
+#    ports:
+#      - '${NGINXIPMAP}:${NGINXPORT}:80'
+    volumes:
+      - '${LOCALROOT}/${CUSTOMERNAME}/nginx/conf.d:/etc/nginx/conf.d'
+      - '${LOCALROOT}/${CUSTOMERNAME}/nginx/certs:/etc/nginx/certs'
+      - '${LOCALROOT}/${CUSTOMERNAME}/htdocs:/var/www/htdocs'
+#      - nginx
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://localhost" ]
+#      interval: 1m30s
+#      timeout: 10s
+#      retries: 3
+    depends_on:
+#      - traefik
+      - php-fpm
+    networks:
+      - traefik-network
+      - ${CUSTOMERNAME}-connector
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ContainerName.rule=Host(`${CUSTOMERNAME}.localdev.de`)"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.ContainerName.entrypoints=web" 
+#      - "traefik.http.routers.ContainerName.entrypoints=websecure"
+#      - "traefik.http.routers.ContainerName.tls.certresolver=myresolver"
+
+  php-fpm:
+    image: 'anotherstranger/php-fpm-ubuntu:${PHPVERSION}'
+    container_name: "FPM_${PHPVERSION}_${CUSTOMERNAME}"
+    volumes:
+      - '${LOCALROOT}/${CUSTOMERNAME}/htdocs:/var/www/htdocs'
+#      - fpm
+    networks:
+      - ${CUSTOMERNAME}-connector
+
+  mysql:
+    image: 'mysql:${MYSQLTAG}'
+    container_name: "mysql_${CUSTOMERNAME}"
+#    ports:
+#      - '127.0.0.1:3366:3306'
+    command: --default-authentication-plugin=mysql_native_password --sql_mode=""
+    environment:
+      MYSQL_PASSWORD: '{MYSQLPW}'
+      MYSQL_DATABASE: '{MYSQLDB}'
+      MYSQL_USER: '{MYSQLUser}'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - mysql:/var/lib/mysql
+      - '${MYSQLSQLDIR}:/docker-entrypoint-initdb.d'
+    networks:
+      - ${CUSTOMERNAME}-connector
+    depends_on:
+      - nginx
+
+
+volumes:
+#  nginx:
+  mysql:
+
+networks:
+  traefik-network:
+   external: true
+   name: traefik-network
+  connector:
+   name: ${CUSTOMERNAME}-connector
+#    driver: bridge
+
+
+
+##
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.nginx.rule=Host('nginx.localhost')"
+#      - "traefik.http.routers.nginx.entrypoints=web"
+#      - "traefik.http.routers.nginx.entrypoints=websecure"
+#      - "traefik.http.routers.nginx.tls=true"
+#      - "traefik.http.routers.nginx.certresolver=staging"
+

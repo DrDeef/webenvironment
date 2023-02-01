@@ -1,0 +1,34 @@
+version: '3.5'
+
+volumes:
+   traefik-ssl-certs:
+     driver: local
+
+services:
+  traefik:
+    image: "traefik:latest"
+    container_name: "traefik"
+    networks:
+      - traefik-network
+    ports:
+      - "80:80"
+      - "443:443"
+      # (Optional) Expose Dashboard
+      - "8080:8080"  # Don't do this in production!
+    volumes:
+      - traefik-ssl-certs:/ssl-certs
+      - ./config/traefik.yml:/traefik.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.fmtv.rule=Host(`fmtv.traefik.pxia.de`)"
+#      - "traefik.http.routers.fmtv.entrypoints=web"
+#      - "traefik.http.routers.nginx.entrypoints=websecure"
+
+
+networks:
+  traefik-network:
+    name: traefik-network
+    driver: bridge
